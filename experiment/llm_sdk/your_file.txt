@@ -1,0 +1,10 @@
+function: fn_add_numbers
+description: Add two numbers together and return their sum.
+function: fn_greet
+description: Generate a greeting message for a person by name.
+function: fn_reverse_string
+description: Reverse a string and return the reversed result.
+function: fn_get_square_root
+description: Calculate the square root of a number.
+function: fn_substitute_string_with_regex
+description: Replace all occurrences matching a regex pattern in a string.
