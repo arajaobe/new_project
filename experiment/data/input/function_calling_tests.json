@@ -1,6 +1,6 @@
 [
   {
-    "prompt": "What is the sum of 2 and 3?"
+    "prompt": "Disable the feature"
   },
   {
     "prompt": "What is the sum of 265 and 345?"
@@ -28,6 +28,21 @@
   },
   {
     "prompt": "Replace all vowels in 'Programming is fun' with asterisks"
+  },
+  {
+    "prompt": "Turn notifications off"
+  },
+  {
+    "prompt": "Replace all punctuation in 'Hello, world!' with empty strings"
+  },
+  {
+    "prompt": "Replace all digits in 'My phone number is 123-456-7890' with X's"
+  },
+  {
+    "prompt": "Replace all occurrences of 'cat' with 'dog' in 'The cat sat on the mat with another cat'"
+  },
+  {
+    "prompt": "Substitute the word 'cat' with 'dog' in 'The cat sat on the mat with another cat'"
   },
   {
     "prompt": "Substitute the word 'cat' with 'dog' in 'The cat sat on the mat with another cat'"
