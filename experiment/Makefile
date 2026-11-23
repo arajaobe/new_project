@@ -1,26 +1,35 @@
-.PHONY: install run debug clean lint lint-strict
+FUNCTIONS ?= data/input/functions_definition.json
+INPUT ?= data/input/function_calling_tests.json
+OUTPUT ?= data/output/function_calling_results.json
 
-PROJECT_DIR := llm_sdk
-PYTHON := $(PROJECT_DIR)/.venv/bin/python
-MAIN := src/main.py
 
 install:
-	cd $(PROJECT_DIR) && uv sync
+	uv sync
+
 
 run:
-	$(PYTHON) $(MAIN)
+	uv run python -m src \
+	--functions_definition $(FUNCTIONS) \
+	--input $(INPUT) \
+	--output $(OUTPUT)
+
 
 debug:
-	$(PYTHON) -m pdb $(MAIN)
+	uv run python -m pdb -m src \
+	--functions_definition $(FUNCTIONS) \
+	--input $(INPUT) \
+	--output $(OUTPUT)
+
 
 clean:
-	find . -type d \( -name __pycache__ -o -name .mypy_cache -o -name .pytest_cache \) -prune -exec rm -rf {} +
-	find . -type f \( -name '*.pyc' -o -name '*.pyo' \) -delete
+	rm -rf __pycache__ .mypy_cache .pytest_cache graph_pac/.mypy_cache
+	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+	find . -type f -name "*.pyc" -delete
+
 
 lint:
 	flake8 .
 	mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
-lint-strict:
-	flake8 .
-	mypy . --strict
+
+.PHONY: install run debug clean lint

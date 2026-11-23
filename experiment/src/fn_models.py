@@ -32,7 +32,7 @@ class FunctionDefinition(BaseModel):
     name: str
     description: str
     parameters: dict[str, ParameterDefinition]
-    returns: ParameterDefinition | None = None
+    returns: ParameterDefinition
 
 
 class FunctionCall(BaseModel):
