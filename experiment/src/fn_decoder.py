@@ -8,16 +8,7 @@ def generate(
     prompt_ids: list[int],
     model: Small_LLM_Model,
 ) -> list[int]:
-    """Generate the most likely token sequence from a constrained set.
-
-    Args:
-        valid_sequences: Token sequences that are allowed as output.
-        prompt_ids: Token IDs for the prompt preceding the generated value.
-        model: Model used to obtain next-token logits.
-
-    Returns:
-        The selected token sequence.
-    """
+    """Generate the most likely token sequence from a constrained set."""
     generated: list[int] = []
     candidates = valid_sequences
 

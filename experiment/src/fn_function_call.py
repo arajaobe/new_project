@@ -1,10 +1,12 @@
+import json
+from pathlib import Path
 from typing import Any
 
 from llm_sdk import Small_LLM_Model
 
-from fn_decoder import generate
-from fn_extraction import extract_parameters
-from fn_models import (
+from .fn_decoder import generate
+from .fn_extraction import extract_parameters
+from .fn_models import (
     FunctionCall,
     FunctionDefinition,
     load_function_definitions,
@@ -16,16 +18,6 @@ def select_function(
     functions: list[FunctionDefinition],
     model: Small_LLM_Model,
 ) -> FunctionDefinition:
-    """Select a function using constrained decoding over function names.
-
-    Args:
-        prompt: User prompt describing the requested operation.
-        functions: Validated functions available for selection.
-        model: Model used for constrained decoding.
-
-    Returns:
-        The selected function, or the first function if decoding is invalid.
-    """
     context = (
         "Available functions:\n\n"
         + "\n".join(
@@ -41,15 +33,6 @@ def select_function(
 
 
 def _validate_call(call: FunctionCall, function: FunctionDefinition) -> None:
-    """Validate argument names, types, and schema choices for a call.
-
-    Args:
-        call: Function call to validate.
-        function: Definition that the call must satisfy.
-
-    Raises:
-        ValueError: If the call does not conform to the function definition.
-    """
     if set(call.parameters) != set(function.parameters):
         raise ValueError(f"Invalid parameter keys for {function.name!r}")
     for name, definition in function.parameters.items():
@@ -74,26 +57,20 @@ def build_function_call(
     prompt: str,
     *,
     functions: list[FunctionDefinition | dict[str, Any]] | None = None,
+    functions_definition: str | Path | None = None,
     model: Small_LLM_Model | None = None,
 ) -> dict[str, Any]:
-    """Build a validated, JSON-serializable function call.
-
-    Args:
-        prompt: Non-empty user prompt to interpret.
-        functions: Optional function definitions, as models or dictionaries.
-        model: Optional model instance used for inference.
-
-    Returns:
-        A mapping containing exactly ``name`` and ``parameters``.
-
-    Raises:
-        ValueError: If the prompt is empty or the generated call is invalid.
-    """
     if not isinstance(prompt, str) or not prompt.strip():
         raise ValueError("prompt must be a non-empty string")
+    if functions is None and functions_definition is None:
+        raise ValueError("functions or functions_definition must be provided")
     definitions = [
         item if isinstance(item, FunctionDefinition) else FunctionDefinition.model_validate(item)
-        for item in (functions if functions is not None else load_function_definitions())
+        for item in (
+            functions
+            if functions is not None
+            else load_function_definitions(functions_definition)
+        )
     ]
     inference_model = model or Small_LLM_Model(device="cpu")
     function = select_function(prompt, definitions, inference_model)
