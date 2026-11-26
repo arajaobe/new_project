@@ -1,8 +1,19 @@
 from .main import main
-
+import sys
 
 if __name__ == "__main__":
     try:
         main()
-    except Exception as e:
-        print(f'An error as occured: {e}')
+
+    except KeyboardInterrupt:
+        print(
+            "\nInterrupted by user.",
+            file=sys.stderr,
+        )
+
+    except Exception as error:
+        print(
+            f"Fatal error: {error}",
+            file=sys.stderr,
+        )
+        sys.exit(1)

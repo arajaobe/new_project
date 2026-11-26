@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+.venv/
+
+# Type checking and testing
+.mypy_cache/
+.pytest_cache/
+
+# Output generated during evaluation
+data/output/

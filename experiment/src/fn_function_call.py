@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +17,17 @@ def select_function(
     functions: list[FunctionDefinition],
     model: Small_LLM_Model,
 ) -> FunctionDefinition:
+    """Select the function whose name best matches the user request.
+
+    Args:
+        prompt: User request to interpret.
+        functions: Function definitions available for selection.
+        model: Model used to choose among the function names.
+
+    Returns:
+        The selected function definition, or the first definition if no name
+        matches.
+    """
     context = (
         "Available functions:\n\n"
         + "\n".join(
@@ -27,18 +37,45 @@ def select_function(
         + f"\nUser request: {prompt}\n\nSelected function:\n"
     )
     prompt_ids = model.encode(context)[0].tolist()
-    sequences = [model.encode(function.name)[0].tolist() for function in functions]
-    selected_name = model.decode(generate(sequences, prompt_ids, model)).strip()
-    return next((function for function in functions if function.name == selected_name), functions[0])
+    sequences = [
+        model.encode(function.name)[0].tolist()
+        for function in functions
+    ]
+    selected_name = model.decode(generate(sequences,
+                                          prompt_ids, model)).strip()
+    return next(
+        (
+            function
+            for function in functions
+            if function.name == selected_name
+        ),
+        functions[0],
+    )
 
 
 def _validate_call(call: FunctionCall, function: FunctionDefinition) -> None:
+    """Validate a function call's parameter keys, types, and allowed values.
+
+    Args:
+        call: Function call to validate.
+        function: Definition specifying the required parameters and
+            constraints.
+
+    Returns:
+        None.
+
+    Raises:
+        ValueError: If the call does not satisfy the function definition.
+    """
     if set(call.parameters) != set(function.parameters):
         raise ValueError(f"Invalid parameter keys for {function.name!r}")
     for name, definition in function.parameters.items():
         value = call.parameters[name]
         valid = {
-            "number": isinstance(value, (int, float)) and not isinstance(value, bool),
+            "number": (
+                isinstance(value, (int, float))
+                and not isinstance(value, bool)
+            ),
             "integer": isinstance(value, int) and not isinstance(value, bool),
             "boolean": isinstance(value, bool),
             "string": isinstance(value, str),
@@ -47,7 +84,9 @@ def _validate_call(call: FunctionCall, function: FunctionDefinition) -> None:
             "null": value is None,
         }[definition.type]
         if not valid:
-            raise ValueError(f"Invalid {definition.type} value for parameter {name!r}")
+            raise ValueError(
+                f"Invalid {definition.type} value for parameter {name!r}"
+            )
         choices = definition.enum or definition.values
         if choices and value not in choices:
             raise ValueError(f"Invalid enum value for parameter {name!r}")
@@ -60,12 +99,30 @@ def build_function_call(
     functions_definition: str | Path | None = None,
     model: Small_LLM_Model | None = None,
 ) -> dict[str, Any]:
+    """Build and validate a function call for a user prompt.
+
+    Args:
+        prompt: Non-empty user request to interpret.
+        functions: Optional function definitions, either model instances or
+            mappings.
+        functions_definition: Optional path to a JSON file of function
+            definitions.
+        model: Optional inference model; a CPU model is created when omitted.
+
+    Returns:
+        A mapping with the selected function name and extracted parameters.
+
+    Raises:
+        ValueError: If the prompt or function definitions are invalid.
+    """
     if not isinstance(prompt, str) or not prompt.strip():
         raise ValueError("prompt must be a non-empty string")
     if functions is None and functions_definition is None:
         raise ValueError("functions or functions_definition must be provided")
     definitions = [
-        item if isinstance(item, FunctionDefinition) else FunctionDefinition.model_validate(item)
+        item
+        if isinstance(item, FunctionDefinition)
+        else FunctionDefinition.model_validate(item)
         for item in (
             functions
             if functions is not None
